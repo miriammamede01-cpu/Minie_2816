@@ -1,158 +1,145 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>Portal de Veículos e Calculadora de Combustível</title>
-<style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    nav ul { list-style: none; display:flex; gap:15px; padding:0; margin:0 0 20px 0; }
-    nav a { text-decoration:none; color:black; font-weight:bold; }
-    nav a:hover { color: darkblue; }
-    .lista-veiculos li { color: blue; margin: 5px 0; }
-    .comparar { margin-top: 15px; }
-    .resultados, .comparacao { margin-top: 20px; padding: 10px; border: 1px solid #ccc; border-radius:8px; background:#f9f9f9; }
-    .erro { color: #8b0000; font-weight: bold; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background: #eee; }
-    input[type="number"] { width: 100px; margin-right: 10px; }
-    label { display: block; margin-bottom: 5px; }
-    button { margin-top: 10px; padding: 5px 10px; }
-</style>
-</head>
-<body>
-<header>
-    <nav>
-        <ul>
-            <li><a href="index.html">Página Inicial</a></li>
-            <li><a href="veiculos.html">Página de Veículos</a></li>
-            <li><a href="contato.html">Página de Contato</a></li>
-        </ul>
-    </nav>
-</header>
-
-<main>
-    <!-- Lista de veículos -->
-    <section>
-        <h3>Lista de Veículos</h3>
-        <ul class="lista-veiculos">
-            <li><label><input type="checkbox" value="Ranger"> Ranger</label></li>
-            <li><label><input type="checkbox" value="Territory"> Territory</label></li>
-            <li><label><input type="checkbox" value="Bronco Sport"> Bronco Sport</label></li>
-            <li><label><input type="checkbox" value="Mustang Mach 1"> Mustang Mach 1</label></li>
-        </ul>
-        <button id="btnComparar">Comparar Veículos Selecionados</button>
-        <div id="comparacao" class="comparacao"></div>
-    </section>
-
-    <!-- Calculadora de combustível -->
-    <section>
-        <h3>Calculadora de Consumo de Combustível</h3>
-        <label>Distância casa-trabalho (km): <input type="number" id="distancia" min="0.01" step="0.01"></label>
-        <label>Consumo médio do veículo (km/L): <input type="number" id="consumo" min="0.01" step="0.01"></label>
-        <label>Quantidade de postos pesquisados: <input type="number" id="postos" min="1" step="1"></label>
-        <div id="valoresPostos"></div>
-        <button id="btnCalcular">Calcular Consumo e Gasto</button>
-        <div id="resultado" class="resultados"></div>
-    </section>
-</main>
-
-<script>
-// Dados dos veículos
-const especificacoes = {
-    "Ranger": { Potência: "200 cv", Consumo: "9 km/L", Preço: "R$ 230.000" },
-    "Territory": { Potência: "150 cv", Consumo: "11 km/L", Preço: "R$ 180.000" },
-    "Bronco Sport": { Potência: "240 cv", Consumo: "8 km/L", Preço: "R$ 250.000" },
-    "Mustang Mach 1": { Potência: "483 cv", Consumo: "6 km/L", Preço: "R$ 530.000" }
-};
-
-// --- Função de comparação de veículos ---
-document.getElementById('btnComparar').addEventListener('click', () => {
-    const selecionados = Array.from(document.querySelectorAll('.lista-veiculos input:checked')).map(cb => cb.value);
-    const divComparacao = document.getElementById('comparacao');
-    divComparacao.innerHTML = '';
-
-    if (selecionados.length < 2) {
-        divComparacao.innerHTML = '<p class="erro">Selecione pelo menos 2 veículos para comparar.</p>';
-        return;
-    }
-
-    let tabela = "<table><tr><th>Veículo</th><th>Potência</th><th>Consumo</th><th>Preço</th></tr>";
-    selecionados.forEach(v => {
-        const dados = especificacoes[v];
-        tabela += `<tr><td>${v}</td><td>${dados.Potência}</td><td>${dados.Consumo}</td><td>${dados.Preço}</td></tr>`;
-    });
-    tabela += "</table>";
-    divComparacao.innerHTML = "<h4>Comparação de Veículos</h4>" + tabela;
-});
-
-// --- Gerar inputs para os postos ---
-const qtdPostos = document.getElementById('postos');
-const divValoresPostos = document.getElementById('valoresPostos');
-
-qtdPostos.addEventListener('input', () => {
-    divValoresPostos.innerHTML = '';
-    const qtd = parseInt(qtdPostos.value);
-    if (isNaN(qtd) || qtd < 1) return;
-    for (let i = 1; i <= qtd; i++) {
-        const label = document.createElement('label');
-        label.textContent = `Valor do combustível no posto ${i}: R$ `;
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.className = 'valorPosto';
-        input.min = '0.01';
-        input.step = '0.01';
-        input.required = true;
-        label.appendChild(input);
-        divValoresPostos.appendChild(label);
-    }
-});
-
-// --- Cálculo de consumo e gasto ---
-document.getElementById('btnCalcular').addEventListener('click', () => {
-    const distancia = parseFloat(document.getElementById('distancia').value);
-    const consumo = parseFloat(document.getElementById('consumo').value);
-    const inputsPostos = document.querySelectorAll('.valorPosto');
-    const divResultado = document.getElementById('resultado');
-    divResultado.innerHTML = '';
-
-    if (isNaN(distancia) || distancia <= 0) {
-        divResultado.innerHTML = '<p class="erro">Informe uma distância válida.</p>';
-        return;
-    }
-    if (isNaN(consumo) || consumo <= 0) {
-        divResultado.innerHTML = '<p class="erro">Informe um consumo válido.</p>';
-        return;
-    }
-    if (inputsPostos.length === 0) {
-        divResultado.innerHTML = '<p class="erro">Informe a quantidade de postos.</p>';
-        return;
-    }
-
-    let soma = 0;
-    let menor = Infinity;
-
-    for (const inp of inputsPostos) {
-        const val = parseFloat(inp.value);
-        if (isNaN(val) || val <= 0) {
-            divResultado.innerHTML = '<p class="erro">Todos os valores dos postos devem ser maiores que zero.</p>';
-            return;
+    <meta charset="UTF-8">
+    <title>Portal de Veículos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
         }
-        soma += val;
-        if (val < menor) menor = val;
-    }
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 15px;
+            padding: 0;
+        }
+        nav a {
+            text-decoration: none;
+            color: black;
+            font-weight: bold;
+        }
+        nav a:hover {
+            color: darkblue;
+        }
+        .lista-veiculos li {
+            margin: 5px 0;
+        }
+        .lista-veiculos a {
+            color: blue; /* nomes dos veículos em azul */
+        }
+        .comparar {
+            margin-top: 15px;
+        }
+        .resultado {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #aaa;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background: #eee;
+        }
+    </style>
+</head>
 
-    const consumoNecessario = distancia / consumo;
-    const media = soma / inputsPostos.length;
-    const gastoDiario = 2 * consumoNecessario * menor;
+<body>
+    <!-- Cabeçalho com links detalhados -->
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Página Inicial</a></li>
+                <li><a href="veiculos.html">Página de Veículos</a></li>
+                <li><a href="contato.html">Página de Contato</a></li>
+            </ul>
+        </nav>
+    </header>
 
-    divResultado.innerHTML = `
-        <p><strong>Consumo necessário:</strong> ${consumoNecessario.toFixed(2)} litros</p>
-        <p><strong>Menor valor encontrado:</strong> R$ ${menor.toFixed(2)}</p>
-        <p><strong>Média dos preços:</strong> R$ ${media.toFixed(2)}</p>
-        <p><strong>Gasto diário estimado (ida e volta):</strong> R$ ${gastoDiario.toFixed(2)}</p>
-    `;
-});
-</script>
+    <!-- Conteúdo principal -->
+    <main>
+        <section>
+            <h3>Lista de Veículos</h3>
+            <ul class="lista-veiculos">
+                <li>
+                    <label>
+                        <input type="checkbox" value="Ranger"> 
+                        <a href="detalhes/ranger.html">Ranger</a>
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        <input type="checkbox" value="Territory"> 
+                        <a href="detalhes/territory.html">Territory</a>
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        <input type="checkbox" value="Bronco Sport"> 
+                        <a href="detalhes/bronco.html">Bronco Sport</a>
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        <input type="checkbox" value="Mustang Mach 1"> 
+                        <a href="detalhes/mustang.html">Mustang Mach 1</a>
+                    </label>
+                </li>
+            </ul>
+
+            <!-- Botão para comparar veículos -->
+            <div class="comparar">
+                <button id="btnComparar">Comparar Veículos Selecionados</button>
+            </div>
+
+            <!-- Área para mostrar resultado -->
+            <div id="resultado" class="resultado"></div>
+        </section>
+    </main>
+
+    <script>
+        // Informações fictícias dos veículos
+        const especificacoes = {
+            "Ranger": { Potência: "200 cv", Consumo: "9 km/L", Preço: "R$ 230.000" },
+            "Territory": { Potência: "150 cv", Consumo: "11 km/L", Preço: "R$ 180.000" },
+            "Bronco Sport": { Potência: "240 cv", Consumo: "8 km/L", Preço: "R$ 250.000" },
+            "Mustang Mach 1": { Potência: "483 cv", Consumo: "6 km/L", Preço: "R$ 530.000" }
+        };
+
+        // Função de comparação
+        document.getElementById('btnComparar').addEventListener('click', () => {
+            const selecionados = Array.from(document.querySelectorAll('.lista-veiculos input:checked'))
+                                      .map(cb => cb.value);
+            const divResultado = document.getElementById('resultado');
+            divResultado.innerHTML = "";
+
+            if (selecionados.length < 2) {
+                divResultado.innerHTML = "<p style='color:red; font-weight:bold'>Selecione pelo menos 2 veículos para comparar.</p>";
+                return;
+            }
+
+            let tabela = "<table><tr><th>Veículo</th><th>Potência</th><th>Consumo</th><th>Preço</th></tr>";
+            selecionados.forEach(v => {
+                const dados = especificacoes[v];
+                tabela += `<tr>
+                            <td>${v}</td>
+                            <td>${dados.Potência}</td>
+                            <td>${dados.Consumo}</td>
+                            <td>${dados.Preço}</td>
+                           </tr>`;
+            });
+            tabela += "</table>";
+            divResultado.innerHTML = "<h4>Comparação de Veículos</h4>" + tabela;
+        });
+    </script>
 </body>
 </html>
